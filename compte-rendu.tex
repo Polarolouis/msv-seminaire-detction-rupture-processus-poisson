@@ -1,10 +1,42 @@
-\documentclass[a4paper,12pt]{article}
+\documentclass[a4paper,10pt]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[french]{babel}
+\usepackage{csquotes}
+\usepackage{hyperref}
+\usepackage{xcolor}
+
+% Géométrie
+\usepackage{geometry}
+\geometry{
+a4paper, 
+total={170mm,257mm},
+left=20mm,
+top=15mm}
+
+% Maths
+\usepackage{amsmath}
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\argmin}{argmin}
+\usepackage{amsfonts}
+\usepackage{dsfont}
+
+% Images 
+\usepackage{wrapfig}
+\usepackage{graphicx}
+\graphicspath{ {./images/} }
+
+% Citations et biblio
+\usepackage[backend=biber, style=apa]{biblatex}
+%== use and define color ==%
+%\usepackage[style=numeric,backend=biber,doi=false,isbn=false,max
+\AtEveryCite{\color{blue}}
+\addbibresource{references.bib}
+
 
 % Commande pour les nombres réels
 \newcommand{\R}{\mathbb{R}}
+\newcommand{\segspace}{\mathcal{T}_K}
 
 % Commande pour les entiers naturels
 \newcommand{\N}{\mathbb{N}}
@@ -39,16 +71,108 @@
 % Poisson
 \newcommand{\Poisson}[1]{\mathcal{P} ({#1})}
 
-\title{Détection de ruptures dans des processus de Poisson - Stéphane Robin}
-\author{Louis Lacoste}
-\date{\today}
+% Pagination
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+% Place Page X of Y on the right-hand
+% side of the footer
+\fancyhf{}
+\rfoot{\thepage}
+
+\title{\large Détection de ruptures dans des processus de Poisson - Stéphane Robin\\
+\small Compte-rendu du séminaire}
+\date{\small 30 Jan. 2024}
+\author{\small Louis Lacoste}
 
 \begin{document}
 \maketitle
 
 \section{Introduction}
 
+Stéphane Robin nous présente une méthode qu'ils ont développé avec Emilie Lebarbier
+et Charlotte Dion-Blanc. Cette méthode est présentée dans l'article 
+\cite{dion-blancDetectionRupturesMultiples2023} sur HAL.
+
+\begin{wrapfigure}{l}{0.35\textwidth}
+    \centering
+    \includegraphics[width=0.35\textwidth]{graph-cris-chauve-souris}
+    \caption{Comptage de cris de chauve-souris (nuit du 17 juillet 2019)}
+    \label{fig:graph-cris-chauve-souris}
+\end{wrapfigure}
+
+La méthode considère des données de comptages au cours du temps. Un exemple de 
+telles données est celui du nombre de cris de chauve-souris au cours de la nuit.
+Ces données sont présentées dans sur la figure~\ref{fig:graph-cris-chauve-souris}.
+Ou encore les données d'éruption du volcan Kilauea présentée sur la figure~\ref{fig:graph-eruption-kilauea}.
+
+\begin{wrapfigure}{r}{0.35\textwidth}
+    \centering
+    \includegraphics[width=0.35\textwidth]{graph-eruption-kilauea}
+    \caption{Données d'éruption du Kilauea, 1750 - 1984}
+    \label{fig:graph-eruption-kilauea}
+\end{wrapfigure}
+
+L'intervalle de temps est normalisé, $t\in[0,1]$ et les instants d'évènements 
+sont les $0<T_1<\dots T_i<\dots T_n < 1$.
+Étant donné qu'il s'agit d'un comptage aléatoire, le processus \emph{naturel}
+est le processus de comptage, $N(t) = \sum_{i=1}^n \mathds{1}_{T_i \leq t}$ et 
+parmi les processus de comptage, le processus de Poisson défini par sa fonction d'intensité $\lambda(t)$.\\
+\section{Méthode}
+
+La méthode fait l'hypothèse que la fonction d'intensité est constante par 
+morceaux et qu'il existe des \emph{points de ruptures} les $(\tau_k)_{0\leq k \leq K}$.
+Et alors pour $t \in I_k = ] \tau_{k-1}; \tau_{k} ], \lambda(t) = \lambda_k$.
+Ainsi l'objectif de la méthode est d'estimer les paramètres 
+$\theta =((\tau_k)_{0\leq k \leq K}, (\lambda_k)_{0\leq k \leq K} )$ et de 
+réaliser une \emph{sélection de modèle} pour obtenir le nombre de segments $K$.
+
+\subsection{Segmentation}
+
+Un rappel sur la segmentation en temps discret, nous montre que la programmation
+dynamique permet ainsi de résoudre le problème d'estimation des paramètres dans 
+ce cas qui semblait apparemment computationnellement complexe.
+
+Dans le cas de la méthode, le problème d'optimisation est 
+$$(\widehat \tau, \widehat \lambda) = 
+\argmin_{\tau\in\segspace, \lambda \in (\R^+)^K} \gamma (\tau, \lambda)$$
+
+L'additivité du contraste: $\gamma(\tau, \lambda) = 
+\sum_{k=1}^K C(\Delta N_k, \Delta\tau_k, \lambda_k)$ en tant que somme sur les 
+segments aide à la résolution du problème d'optimisation.
+En effet le $\lambda$ optimal peut être obtenu grâce à la propriété d'additivité
+en résolvant $\widehat \lambda_k = \lambda_k (\tau) = \argmin_{\lambda_k \in \R^+} C(\Delta N_k, \Delta\tau_k)$.
+Et si la fonction de contraste est la log-vraisemblance négative, on a : $\widehat \lambda_k = \Delta N_k / \Delta \tau_k$.
+
+Mais le problème difficile est celui de trouver le $\tau$ optimal, car le problème 
+d'optimisation est alors $\widehat \tau = 
+\argmin_{\tau\in\segspace} \widehat \gamma(\tau), 
+\widehat \gamma(\tau) = \gamma (\tau, \widehat \lambda (\tau))$ où $\segspace$ 
+est l'espace de segmentation \textbf{continu}, $$\segspace = 
+\bigl\{ \tau \in [0,1]^{K+1} : 0 = \tau_0 < \tau_1 \dots < \tau_{K-1} < \tau_K = 1 \bigr\}$$
+Car le contraste n'est ni convexe ni continu par rapport à $\tau$.
+
+\begin{wrapfigure}{l}{0.35\textwidth}
+    \centering
+    \includegraphics[width=0.35\textwidth]{contrast-function}
+    \caption{Fonction de contraste pour $n=10$, $K=3$ et $\tau = (\tau_1,\tau_2)$}
+    \label{fig:contrast-function}
+\end{wrapfigure}
+
+La figure~\ref{fig:contrast-function} présente les valeurs de la fonction de 
+contraste pour les paramètres donnés.
+
+\begin{wrapfigure}{r}{0.35\textwidth}
+    \centering
+    \includegraphics[width=0.35\textwidth]{space-partitioning}
+    \caption{Partitionnement de l'espace de segmentation pour $K=3$ et $\tau = (\tau_1,\tau_2)$}
+    \label{fig:space-partitioning}
+\end{wrapfigure}
 
 \section{Apport personnel}
+
+\section*{Bibliographie}
+
+\printbibliography
+\nocite{*}
 
 \end{document}
