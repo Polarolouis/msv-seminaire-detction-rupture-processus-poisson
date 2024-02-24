@@ -1,0 +1,15 @@
+<<include=FALSE>>=
+    knitr::opts_chunk$set(echo = FALSE)
+@
+
+<<'import', eval = TRUE, include = FALSE>>=
+require(ggplot2, quietly = TRUE)
+data(Titanic)
+@
+
+% \begin{wrapfigure}{r}{0.35\textwidth}
+%     <<'plot', eval = TRUE, fig = TRUE>>=
+%     plot(Titanic)
+%     @
+%     \caption{Titanic plot}
+% \end{wrapfigure}
