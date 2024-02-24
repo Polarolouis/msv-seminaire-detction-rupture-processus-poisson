@@ -134,7 +134,7 @@ top=15mm}
 
 \title{\vspace{-1.5cm}\large Détection de ruptures dans des processus de Poisson - Stéphane Robin\\
 \small Compte-rendu du séminaire\vspace{-0.5cm}}
-\date{\small 30 Jan. 2024}
+\date{\tiny 30 Jan. 2024}
 \author{\small Louis Lacoste}
 
 
@@ -145,15 +145,22 @@ top=15mm}
 
 \section{Introduction}
 
+\begin{wrapfigure}[15]{l}{0.35\textwidth}
+    \centering
+    \includegraphics[width=0.3\textwidth]{graph-cris-chauve-souris}
+    \caption{Comptage de cris de chauve-souris (nuit du 17 juillet 2019)}
+    \label{fig:graph-cris-chauve-souris}
+\end{wrapfigure}
+
 Stéphane Robin nous présente une méthode qu'ils ont développé avec Emilie Lebarbier
 et Charlotte Dion-Blanc. Cette méthode est présentée dans l'article 
 \cite{dion-blancDetectionRupturesMultiples2023} sur HAL.
 
-\begin{wrapfigure}{l}{0.35\textwidth}
+\begin{wrapfigure}[16]{r}{0.25\textwidth}
     \centering
-    \includegraphics[width=0.35\textwidth]{graph-cris-chauve-souris}
-    \caption{Comptage de cris de chauve-souris (nuit du 17 juillet 2019)}
-    \label{fig:graph-cris-chauve-souris}
+    \includegraphics[width=0.25\textwidth]{graph-eruption-kilauea}
+    \caption{Données d'éruption du Kilauea, 1750 - 1984}
+    \label{fig:graph-eruption-kilauea}
 \end{wrapfigure}
 
 La méthode considère des données de comptages au cours du temps. Un exemple de 
@@ -161,18 +168,13 @@ telles données est celui du nombre de cris de chauve-souris au cours de la nuit
 Ces données sont présentées dans sur la figure~\ref{fig:graph-cris-chauve-souris}.
 Ou encore les données d'éruption du volcan Kilauea présentée sur la figure~\ref{fig:graph-eruption-kilauea}.
 
-\begin{wrapfigure}{r}{0.35\textwidth}
-    \centering
-    \includegraphics[width=0.35\textwidth]{graph-eruption-kilauea}
-    \caption{Données d'éruption du Kilauea, 1750 - 1984}
-    \label{fig:graph-eruption-kilauea}
-\end{wrapfigure}
-
 L'intervalle de temps est normalisé, $t\in[0,1]$ et les instants d'évènements 
 sont les $0<T_1<\dots T_i<\dots T_n < 1$.
 Étant donné qu'il s'agit d'un comptage aléatoire, le processus \emph{naturel}
 est le processus de comptage, $N(t) = \sum_{i=1}^n \mathds{1}_{T_i \leq t}$ et 
-parmi les processus de comptage, le processus de Poisson défini par sa fonction d'intensité $\lambda(t)$.\\
+parmi les processus de comptage, le processus de Poisson défini par sa fonction 
+d'intensité $\lambda(t)$.\\
+
 \section{Méthode}
 
 La méthode fait l'hypothèse que la fonction d'intensité est constante par 
@@ -209,19 +211,13 @@ d'optimisation est alors $\widehat \tau =
 est l'espace de segmentation \textbf{continu}, $$\segspace = 
 \bigl\{ \tau \in [0,1]^{K+1} : 0 = \tau_0 < \tau_1 \dots < \tau_{K-1} < 
 \tau_K = 1 \bigr\}$$
-Car le contraste n'est ni convexe ni continu par rapport à $\tau$.
 
-\begin{wrapfigure}{l}{0.35\textwidth}
-    \centering
-    \includegraphics[width=0.35\textwidth]{contrast-function}
-    \caption{Fonction de contraste pour $n=10$, $K=3$ et $\tau = (\tau_1,\tau_2)$}
-    \label{fig:contrast-function}
-\end{wrapfigure}
+Car le contraste n'est ni convexe ni continu par rapport à $\tau$.
 
 La figure~\ref{fig:contrast-function} présente les valeurs de la fonction de 
 contraste pour les paramètres donnés. Sur la figure, chaque "bloc" correspond à
 une partition des nombre d'évènements ($\Delta N = (\Delta N_1, \Delta N_2, 
-\Delta N_3)$). 
+\Delta N_3)$, visibles sur la figure~\ref{fig:space-partitioning}).
 
 L'idée est alors de partitionner le nombre d'évènements  $\mathcal{N} = 
 \bigl\{ \nu \in \N^K : \sum_{k=1}^K \nu_k = n \bigr\}$ où $\nu_k$ est le nombre
@@ -233,11 +229,18 @@ $$\min_{\bm{\tau}\in\segspace} \widehat \gamma (\bm{\tau}) = \min_{\nu \in
 \mathcal{N}^K} \min_{\bm{\tau}\in\mathcal{T}(\nu)} \widehat \gamma (\bm{\tau})$$
 Et alors grâce au fait que
 
+\begin{wrapfigure}{l}{0.35\textwidth}
+  \centering
+  \includegraphics[width=0.35\textwidth]{contrast-function}
+  \caption{Fonction de contraste pour $n=10$, $K=3$ et $\tau = (\tau_1,\tau_2)$}
+  \label{fig:contrast-function}
+\end{wrapfigure}
+
 \begin{wrapfigure}{r}{0.35\textwidth}
-    \centering
-    \includegraphics[width=0.35\textwidth]{space-partitioning}
-    \caption{Partitionnement de l'espace de segmentation pour $K=3$ et $\tau = (\tau_1,\tau_2)$}
-    \label{fig:space-partitioning}
+  \centering
+  \includegraphics[width=0.35\textwidth]{space-partitioning}
+  \caption{Partitionnement de l'espace de segmentation pour $K=3$ et $\tau = (\tau_1,\tau_2)$}
+  \label{fig:space-partitioning}
 \end{wrapfigure}
 
 \section{Apport personnel}
