@@ -22,6 +22,7 @@ top=15mm}
 \DeclareMathOperator*{\argmin}{argmin}
 \usepackage{amsfonts}
 \usepackage{dsfont}
+\usepackage{bm}
 
 % Images 
 \usepackage{wrapfig}
@@ -81,8 +82,8 @@ top=15mm}
 \fancyhf{}
 \rfoot{\thepage}
 
-\title{\large Détection de ruptures dans des processus de Poisson - Stéphane Robin\\
-\small Compte-rendu du séminaire}
+\title{\vspace{-1.5cm}\large Détection de ruptures dans des processus de Poisson - Stéphane Robin\\
+\small Compte-rendu du séminaire\vspace{-0.5cm}}
 \date{\small 30 Jan. 2024}
 \author{\small Louis Lacoste}
 
@@ -139,22 +140,26 @@ dynamique permet ainsi de résoudre le problème d'estimation des paramètres da
 ce cas qui semblait apparemment computationnellement complexe.
 
 Dans le cas de la méthode, le problème d'optimisation est 
-$$(\widehat \tau, \widehat \lambda) = 
-\argmin_{\tau\in\segspace, \lambda \in (\R^+)^K} \gamma (\tau, \lambda)$$
+$$(\widehat{\bm{\tau}}, \widehat{\bm{\lambda}}) = 
+\argmin_{\bm{\tau}\in\segspace, \bm{\lambda} \in (\R^+)^K} \gamma (\bm{\tau}, \bm{\lambda})$$
 
-L'additivité du contraste: $\gamma(\tau, \lambda) = 
+L'additivité du contraste: $\gamma(\bm\tau, \bm\lambda) = 
 \sum_{k=1}^K C(\Delta N_k, \Delta\tau_k, \lambda_k)$ en tant que somme sur les 
 segments aide à la résolution du problème d'optimisation.
-En effet le $\lambda$ optimal peut être obtenu grâce à la propriété d'additivité
-en résolvant $\widehat \lambda_k = \lambda_k (\tau) = \argmin_{\lambda_k \in \R^+} C(\Delta N_k, \Delta\tau_k)$.
-Et si la fonction de contraste est la log-vraisemblance négative, on a : $\widehat \lambda_k = \Delta N_k / \Delta \tau_k$.
+En effet le $\bm \lambda = (\lambda_1, \dots, \lambda_K)$ optimal peut être obtenu grâce à la propriété d'additivité
+en résolvant $\widehat \lambda_k = \lambda_k (\tau) = \argmin_{\lambda_k \in \R^+} 
+C(\Delta N_k, \Delta\tau_k)$.
+Et si la fonction de contraste est la log-vraisemblance négative, on a : 
+$\widehat \lambda_k = \Delta N_k / \Delta \tau_k$.
 
-Mais le problème difficile est celui de trouver le $\tau$ optimal, car le problème 
+Mais le problème difficile est celui de trouver le $\bm\tau = (\tau_0, \dots, 
+\tau_K)$ optimal, car le problème 
 d'optimisation est alors $\widehat \tau = 
 \argmin_{\tau\in\segspace} \widehat \gamma(\tau), 
 \widehat \gamma(\tau) = \gamma (\tau, \widehat \lambda (\tau))$ où $\segspace$ 
 est l'espace de segmentation \textbf{continu}, $$\segspace = 
-\bigl\{ \tau \in [0,1]^{K+1} : 0 = \tau_0 < \tau_1 \dots < \tau_{K-1} < \tau_K = 1 \bigr\}$$
+\bigl\{ \tau \in [0,1]^{K+1} : 0 = \tau_0 < \tau_1 \dots < \tau_{K-1} < 
+\tau_K = 1 \bigr\}$$
 Car le contraste n'est ni convexe ni continu par rapport à $\tau$.
 
 \begin{wrapfigure}{l}{0.35\textwidth}
@@ -165,9 +170,19 @@ Car le contraste n'est ni convexe ni continu par rapport à $\tau$.
 \end{wrapfigure}
 
 La figure~\ref{fig:contrast-function} présente les valeurs de la fonction de 
-contraste pour les paramètres donnés.
+contraste pour les paramètres donnés. Sur la figure, chaque "bloc" correspond à
+une partition des nombre d'évènements ($\Delta N = (\Delta N_1, \Delta N_2, 
+\Delta N_3)$). 
 
-
+L'idée est alors de partitionner le nombre d'évènements  $\mathcal{N} = 
+\bigl\{ \nu \in \N^K : \sum_{k=1}^K \nu_k = n \bigr\}$ où $\nu_k$ est le nombre
+d'évènements dans le segment k. Puis à partir de cette partition, on peut 
+partitionner l'espace de segmentation $\mathcal{T}(\nu) = 
+\bigl\{ \bm \tau \in \segspace : \Delta N = \nu \bigr\}$ qui satisfait la 
+partition $\nu$. Ce qui permet de réécrire le problème de minimisation :
+$$\min_{\bm{\tau}\in\segspace} \widehat \gamma (\bm{\tau}) = \min_{\nu \in 
+\mathcal{N}^K} \min_{\bm{\tau}\in\mathcal{T}(\nu)} \widehat \gamma (\bm{\tau})$$
+Et alors grâce au fait que
 
 \begin{wrapfigure}{r}{0.35\textwidth}
     \centering
