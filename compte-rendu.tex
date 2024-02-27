@@ -94,6 +94,8 @@ top=15mm}
 \newcommand{\R}{\mathbb{R}}
 \newcommand{\segspace}{\mathcal{T}_K}
 
+\newcommand{\indep}{\perp \!\!\! \perp}
+
 % Commande pour les entiers naturels
 \newcommand{\N}{\mathbb{N}}
 
@@ -146,6 +148,7 @@ top=15mm}
 \begin{document}
 \maketitle
 
+Ce compte-rendu concerne la présentation \cite{robinChangepointDetectionPoisson2019}.
 \section{Introduction}
 
 \begin{wrapfigure}[14]{L}{0.27\textwidth}
@@ -177,7 +180,7 @@ Ou encore les données d'éruption du volcan Kilauea présentée sur la figure~\
 
 L'intervalle de temps est normalisé, $t\in[0,1]$ et les instants d'évènements 
 sont les $0<T_1<\dots T_i<\dots T_n < 1$.
-Étant donné qu'il s'agit d'un comptage aléatoire, le processus \emph{naturel}
+Étant donné qu'il s'agit d'un comptage aléatoire, le processus \emph{naturel}\footnote{Au sens du premier qui vienne à l'esprit.}
 est le processus de comptage, $N(t) = \sum_{i=1}^n \mathds{1}_{T_i \leq t}$ et 
 parmi les processus de comptage, le processus de Poisson défini par sa fonction 
 d'intensité $\lambda(t)$.\\
@@ -197,14 +200,14 @@ Un rappel sur la segmentation en temps discret, nous montre que la programmation
 dynamique permet ainsi de résoudre le problème d'estimation des paramètres dans 
 ce cas qui semblait apparemment computationnellement complexe.
 
-Dans le cas de la méthode, le problème d'optimisation est 
+Dans le cas de la méthode, c'est à dire le temps \emph{continu}, le problème d'optimisation est 
 $$(\widehat{\bm{\tau}}, \widehat{\bm{\lambda}}) = 
 \argmin_{\bm{\tau}\in\segspace, \bm{\lambda} \in (\R^+)^K} \gamma (\bm{\tau}, \bm{\lambda})$$
 
 L'additivité du contraste: $\gamma(\bm\tau, \bm\lambda) = 
 \sum_{k=1}^K C(\Delta N_k, \Delta\tau_k, \lambda_k)$ en tant que somme sur les 
 segments aide à la résolution du problème d'optimisation.
-En effet le $\bm \lambda = (\lambda_1, \dots, \lambda_K)$ optimal peut être obtenu grâce à la propriété d'additivité
+En effet le $\bm \lambda = (\lambda_1, \dots, \lambda_K)$ optimal peut être estimé grâce à la propriété d'additivité
 en résolvant $\widehat \lambda_k = \lambda_k (\tau) = \argmin_{\lambda_k \in \R^+} 
 C(\Delta N_k, \Delta\tau_k)$.
 Et si la fonction de contraste est la log-vraisemblance négative, on a : 
@@ -223,7 +226,7 @@ Car le contraste n'est ni convexe ni continu par rapport à $\tau$.
 
 La figure~\ref{fig:contrast-function} présente les valeurs de la fonction de 
 contraste pour les paramètres donnés. Sur la figure, chaque "bloc" correspond à
-une partition des nombre d'évènements ($\Delta N = (\Delta N_1, \Delta N_2, 
+une partition des nombre d'évènements $\Delta N = (\Delta N_1, \Delta N_2, 
 \Delta N_3)$.
 
 L'idée est alors de partitionner le nombre d'évènements  $\mathcal{N} = 
@@ -235,9 +238,8 @@ partition $\nu$. Ce qui permet de réécrire le problème de minimisation :
 $$\min_{\bm{\tau}\in\segspace} \widehat \gamma (\bm{\tau}) = \min_{\nu \in 
 \mathcal{N}^K} \min_{\bm{\tau}\in\mathcal{T}(\nu)} \widehat \gamma (\bm{\tau})$$
 
-\newpage
-
-\begin{wrapfigure}[21]{L}{0.25\textwidth}
+\begin{wrapfigure}[28]{L}{0.25\textwidth}
+    \vspace{-12pt}
     \centering
     \caption{Fonction de contraste et partitionnement de l'espace pour $n=10$, $K=3$ et $\tau = (\tau_1,\tau_2)$}
     \label{fig:contrast-function}
@@ -250,18 +252,48 @@ rapport aux $\Delta \tau_k$ les auteurs montrent que $\hat{\tau} =
 \argmin_{\tau\in\segspace} \hat{\gamma}(\bm{\tau}) \subset \bigl\{ T^-_1, T_1, 
 \dots, T^-_n, T_n \bigr\}$\footnote{$T_i^-$ représente l'instant juste avant le saut
 au temps $T_i$.}. Et ainsi, la programmation dynamique permet de trouver
-les points de ruptures avec une complexité $\mathcal{O}(n^2)$.
+les points de ruptures avec une complexité au plus $\mathcal{O}(n^2)$.
 
 Un contraste concave par rapport à $\Delta\tau$ est dit admissible (par exemple
-les contrastes de Poisson et Poisson-Gamma). Et un contraste est dit désirable
-n'autorise pas les segments de longueur nulle (et c'est le cas du 
+les contrastes de Poisson et Poisson-Gamma). Voici le contraste de Poisson :
+
+$$C_P(\nu_k, \Delta\tau_k) = \nu_k(1-\log \nu_k + \log \Delta\tau_k)$$
+
+Et un contraste est dit désirable
+s'il n'autorise pas les segments de longueur nulle (et c'est le cas du 
 Poisson-Gamma).
+
+Voici donc la formule du contraste Poisson-Gamma :
+
+$$C_{PG}(\nu_k, \Delta\tau_k)=-\log\Gamma(a+\nu_k)+(a+\nu_k)\log(b+\nu_k)$$
+
+qui satisfait les deux propriétés, d'admissibilité et de désirabilité.
+
+Celle-ci dérive du modèle Poisson-Gamma qui dit que pour chaque segment 
+$1\leq k \leq K$ :
+$$\lambda_k \overset{iid}{\sim} \mathcal{G}am(a,b), (N(t))_{t\in I_k} \sim PP(\lambda_k)$$
 
 \subsection{Sélection de modèle}
 
 Pour la sélection de modèle la propriété de \emph{thinning} du processus de 
 Poisson permet d'obtenir deux processus de Poisson indépendants et donc 
-de pouvoir faire de la \emph{cross-validation}
+de pouvoir faire de la \emph{cross-validation}.
+
+En effet, en sélectionnant chaque point avec une probabilité $f$ pour faire 
+partie du jeu d'entraînement et en sélectionnant donc avec probabilité $1-f$ 
+ceux faisant partie du jeu de test on obtient deux processus de Poisson 
+indépendants.
+
+$$N^L(t) \sim PP(f \lambda(t)) \indep N^T(t) \sim PP((1-f) \lambda(t))$$
+
+Et alors on peut répéter cette procédure $M$ fois, estimer les paramètres sur le 
+jeu d'apprentissage, 
+puis moyenner les contrastes obtenus. 
+Pour chaque $m$ on a $\gamma^{T,m}_K = \gamma \bigl( N^T(t);\hat{\tau}^{L,m},\frac{1-f}{f}\hat{\lambda}^{L,m} \bigr)$
+
+On a alors accès à $\bar{\gamma}_K = \frac{1}{K} \sum_{m=1}^M \gamma^{T,m}_K$ et
+on peut alors sélectionner :
+$$\hat{K} = \argmin_K \bar{\gamma}_K$$
 
 \subsection{Extension : Processus de Poisson marqué}
 
@@ -287,12 +319,11 @@ sous-jacente.
 
 
 
-Nous allons tout d'abord simuler un processus de Poisson inhomogène\footnote{Le 
-code pour ce rapport est disponible sur 
-\url{https://github.com/Polarolouis/msv-seminaire-detction-rupture-processus-poisson}} selon les 
+Nous allons tout d'abord simuler un processus de Poisson inhomogène selon les 
 conditions du modèle et voir ce que donne l'estimation avec le package 
-\texttt{CptPointProcess}.
-
+\texttt{CptPointProcess}. Le 
+code pour ce rapport est disponible sur 
+\url{https://github.com/Polarolouis/msv-seminaire-detction-rupture-processus-poisson}.
 
 
 
@@ -413,8 +444,8 @@ analyse. Ces données sont présentées dans la figure~\ref{fig:donnees-soub}.
 
 Aux vues de l'expérience, on peut s'attendre à une phase exploratoire des 
 différents bras du bandit (phase d'\emph{exploration}) puis une fois le bras 
-dont la stratégie convient au sujet trouvé à une concentration sur celui-ci (
-phase d'\emph{exploitation}). Á noter qu'avec les évènements rares et extrême
+dont la stratégie convient au sujet trouvé à une concentration sur celui-ci 
+(phase d'\emph{exploitation}). À noter qu'avec les évènements rares et extrême
 des perturbations des convictions du sujet peuvent amener à des modifications du
 comportement. Ces analyses \emph{a priori} nous invite à penser que l'on peut 
 être dans le cas d'un processus de Poisson avec ruptures.
@@ -447,7 +478,7 @@ begin & end & Dt & DN & lambda & code.end\\
 
 Et ainsi on trouve $\lambda = (0.1, 1.06, 9.28, 0.3, 4.85, 1.77, 6.76)$
 
-En interpétant ces paramètres on peut voir deux premiers segments qui semblent
+En interprétant ces paramètres on peut voir deux premiers segments qui semblent
 correspondre à la phase exploratoire initiale, puis une intensité de $9$ qui 
 correspond à la première phase d'exploitation. Et par la suite une cassure dûe
 à un évènement extrême négatif avant une reprise d'exploitation mixée à de 
@@ -456,8 +487,6 @@ l'exploration.
 La détection de rupture pourra donc permettre d'analyser davantage les données 
 d'autres sujets afin de voir si ce genre d'analyse peut fournir de plus amples
 information sur la prise de décision en situation d'incertitude.
-
-\newpage
 
 \printbibliography
 \nocite{*}

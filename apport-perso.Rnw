@@ -5,12 +5,11 @@
 require("CptPointProcess", quietly = TRUE)
 require("latex2exp", quietly = TRUE)
 @
-Nous allons tout d'abord simuler un processus de Poisson inhomogène\footnote{Le 
-code pour ce rapport est disponible sur 
-\url{https://github.com/Polarolouis/msv-seminaire-detction-rupture-processus-poisson}} selon les 
+Nous allons tout d'abord simuler un processus de Poisson inhomogène selon les 
 conditions du modèle et voir ce que donne l'estimation avec le package 
-\texttt{CptPointProcess}.
-
+\texttt{CptPointProcess}. Le 
+code pour ce rapport est disponible sur 
+\url{https://github.com/Polarolouis/msv-seminaire-detction-rupture-processus-poisson}.
 <<'simulation_pp_fonction', echo = FALSE>>=
 set.seed(1234)
 generate_proc_pois_h <- function(lambda, nb_event) {
@@ -164,8 +163,8 @@ analyse. Ces données sont présentées dans la figure~\ref{fig:donnees-soub}.
 
 Aux vues de l'expérience, on peut s'attendre à une phase exploratoire des 
 différents bras du bandit (phase d'\emph{exploration}) puis une fois le bras 
-dont la stratégie convient au sujet trouvé à une concentration sur celui-ci (
-phase d'\emph{exploitation}). Á noter qu'avec les évènements rares et extrême
+dont la stratégie convient au sujet trouvé à une concentration sur celui-ci 
+(phase d'\emph{exploitation}). À noter qu'avec les évènements rares et extrême
 des perturbations des convictions du sujet peuvent amener à des modifications du
 comportement. Ces analyses \emph{a priori} nous invite à penser que l'on peut 
 être dans le cas d'un processus de Poisson avec ruptures.
@@ -188,7 +187,7 @@ result_soub <- CptPointProcess(ProcessData =
 
 Et ainsi on trouve $\lambda = (\Sexpr{round((result_soub$SegK$lambda)/max_soub_time, digits = 2)})$
 
-En interpétant ces paramètres on peut voir deux premiers segments qui semblent
+En interprétant ces paramètres on peut voir deux premiers segments qui semblent
 correspondre à la phase exploratoire initiale, puis une intensité de $9$ qui 
 correspond à la première phase d'exploitation. Et par la suite une cassure dûe
 à un évènement extrême négatif avant une reprise d'exploitation mixée à de 
