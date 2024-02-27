@@ -8,6 +8,9 @@
 \usepackage{hyperref}
 \usepackage{xcolor}
 
+% Booktabs
+\usepackage{booktabs}
+
 % Géométrie
 \usepackage{geometry}
 \geometry{
@@ -83,12 +86,14 @@ top=15mm}
 \rfoot{\thepage}
 
 \title{\vspace{-1.5cm}\large Détection de ruptures dans des processus de Poisson - Stéphane Robin\\
-\small Compte-rendu du séminaire\vspace{-1.5cm}}
+\small Compte-rendu du séminaire\vspace{-0.5cm}}
 \date{\small 30 Jan. 2024}
 \author{\small Louis Lacoste}
 
 <<include=FALSE>>=
     knitr::opts_chunk$set(echo = FALSE)
+    require("knitr", quietly = TRUE)
+    options(knitr.table.format = "latex")
 @
 
 \begin{document}
@@ -96,10 +101,12 @@ top=15mm}
 
 \section{Introduction}
 
-\begin{wrapfigure}[15]{l}{0.35\textwidth}
+\begin{wrapfigure}[14]{L}{0.27\textwidth}
     \centering
-    \includegraphics[width=0.3\textwidth]{graph-cris-chauve-souris}
-    \caption{Comptage de cris de chauve-souris (nuit du 17 juillet 2019)}
+    \vspace{-5pt}
+    \includegraphics[width=0.27\textwidth]{graph-cris-chauve-souris}
+    \vspace{-20pt}
+    \caption{\small Comptage de cris de chauve-souris (nuit du 17 juillet 2019)}
     \label{fig:graph-cris-chauve-souris}
 \end{wrapfigure}
 
@@ -107,9 +114,11 @@ Stéphane Robin nous présente une méthode qu'ils ont développé avec Emilie L
 et Charlotte Dion-Blanc. Cette méthode est présentée dans l'article 
 \cite{dion-blancDetectionRupturesMultiples2023} sur HAL.
 
-\begin{wrapfigure}[16]{r}{0.25\textwidth}
+\begin{wrapfigure}[14]{R}{0.27\textwidth}
     \centering
-    \includegraphics[width=0.25\textwidth]{graph-eruption-kilauea}
+    \vspace{-20pt}
+    \includegraphics[width=0.27\textwidth]{graph-eruption-kilauea}
+    \vspace{-20pt}
     \caption{Données d'éruption du Kilauea, 1750 - 1984}
     \label{fig:graph-eruption-kilauea}
 \end{wrapfigure}
@@ -165,23 +174,11 @@ est l'espace de segmentation \textbf{continu}, $$\segspace =
 
 Car le contraste n'est ni convexe ni continu par rapport à $\tau$.
 
-\begin{wrapfigure}{l}{0.35\textwidth}
-    \centering
-    \includegraphics[width=0.35\textwidth]{contrast-function}
-    \caption{Fonction de contraste pour $n=10$, $K=3$ et $\tau = (\tau_1,\tau_2)$}
-    \label{fig:contrast-function}
-\end{wrapfigure}
-
 La figure~\ref{fig:contrast-function} présente les valeurs de la fonction de 
 contraste pour les paramètres donnés. Sur la figure, chaque "bloc" correspond à
 une partition des nombre d'évènements ($\Delta N = (\Delta N_1, \Delta N_2, 
 \Delta N_3)$, visibles sur la figure~\ref{fig:space-partitioning}).
-\begin{wrapfigure}[5]{r}{0.35\textwidth}
-    \centering
-    \includegraphics[width=0.35\textwidth]{space-partitioning}
-    \caption{Partitionnement de l'espace de segmentation pour $K=3$ et $\tau = (\tau_1,\tau_2)$}
-    \label{fig:space-partitioning}
-\end{wrapfigure}
+
 L'idée est alors de partitionner le nombre d'évènements  $\mathcal{N} = 
 \bigl\{ \nu \in \N^K : \sum_{k=1}^K \nu_k = n \bigr\}$ où $\nu_k$ est le nombre
 d'évènements dans le segment k. Puis à partir de cette partition, on peut 
@@ -190,14 +187,60 @@ partitionner l'espace de segmentation $\mathcal{T}(\nu) =
 partition $\nu$. Ce qui permet de réécrire le problème de minimisation :
 $$\min_{\bm{\tau}\in\segspace} \widehat \gamma (\bm{\tau}) = \min_{\nu \in 
 \mathcal{N}^K} \min_{\bm{\tau}\in\mathcal{T}(\nu)} \widehat \gamma (\bm{\tau})$$
-Et alors grâce au fait que
 
+\newpage
+
+\begin{wrapfigure}[21]{L}{0.25\textwidth}
+    \centering
+    \caption{Fonction de contraste et partitionnement de l'espace pour $n=10$, $K=3$ et $\tau = (\tau_1,\tau_2)$}
+    \label{fig:contrast-function}
+    \includegraphics[width=0.25\textwidth]{contrast-function}
+    \includegraphics[width=0.25\textwidth]{space-partitioning}
+\end{wrapfigure}
+
+Et alors grâce aux propriétés de stricte concavité des fonctions de coût $C$ par
+rapport aux $\Delta \tau_k$ les auteurs montrent que $\hat{\tau} = 
+\argmin_{\tau\in\segspace} \hat{\gamma}(\bm{\tau}) \subset \bigl\{ T^-_1, T_1, 
+\dots, T^-_n, T_n \bigr\}$\footnote{$T_i^-$ représente l'instant juste avant le saut
+au temps $T_i$.}. Et ainsi, la programmation dynamique permet de trouver
+les points de ruptures avec une complexité $\mathcal{O}(n^2)$.
+
+Un contraste concave par rapport à $\Delta\tau$ est dit admissible (par exemple
+les contrastes de Poisson et Poisson-Gamma). Et un contraste est dit désirable
+n'autorise pas les segments de longueur nulle (et c'est le cas du 
+Poisson-Gamma).
+
+\subsection{Sélection de modèle}
+
+Pour la sélection de modèle la propriété de \emph{thinning} du processus de 
+Poisson permet d'obtenir deux processus de Poisson indépendants et donc 
+de pouvoir faire de la \emph{cross-validation}
+
+\subsection{Extension : Processus de Poisson marqué}
+
+Le processus de Poisson marqué est une extension et la méthode de détection de
+rupture peut gérer ces données supplémentaires.
+
+Un processus de Poisson est dit marqué si à chaque temps de saut $T_i$ est 
+associé une "marque". Pour l'exemple des volcans, il s'agit de la durée de l'
+éruption et pour les cris de chauve-souris, il peut s'agir soit de l'espèce ou 
+encore de la durée du cri.
+
+Mathématiquement, cela peut se noter : 
+$$(Y(t))_{0\leq t \leq 1} \sim MPP(\lambda(t), \mu(t)),$$ 
+qui consiste en deux composantes :
+$$(N(t))_{0\leq t \leq 1} \sim PP(\lambda(t)), X_i \sim \underbrace{\mathcal{F}}_{\text{loi de probabilité}}(\mu(T_i))$$
+
+Et dans la présentation, on peut ainsi voir que sur un exemple d'éruption de 
+l'Etna, la prise en compte des marques modifie l'estimation des paramètres. Ce 
+qui dans le cas du volcan pourrait indiquer des modifications de son activité
+sous-jacente.
 
 \section{Apport personnel}
 <<apport-perso, child='apport-perso.Rnw'>>=
 @
 
-\section*{Bibliographie}
+\newpage
 
 \printbibliography
 \nocite{*}

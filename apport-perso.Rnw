@@ -1,15 +1,199 @@
 <<include=FALSE>>=
     knitr::opts_chunk$set(echo = FALSE)
 @
-
 <<'import', eval = TRUE, include = FALSE>>=
-require(ggplot2, quietly = TRUE)
-data(Titanic)
+require("CptPointProcess", quietly = TRUE)
+require("latex2exp", quietly = TRUE)
+@
+Nous allons tout d'abord simuler un processus de Poisson inhomogène\footnote{Le 
+code pour ce rapport est disponible sur 
+\url{https://github.com/Polarolouis/msv-seminaire-detction-rupture-processus-poisson}} selon les 
+conditions du modèle et voir ce que donne l'estimation avec le package 
+\texttt{CptPointProcess}.
+
+<<'simulation_pp_fonction', echo = FALSE>>=
+set.seed(1234)
+generate_proc_pois_h <- function(lambda, nb_event) {
+    cumsum(rexp(nb_event, rate = lambda))
+}
+
+generate_proc_pois_cpm <- function(lambdas, nb_event_vec) {
+    event_times <- NULL
+    df <- data.frame(lambdas = lambdas, nb_event_vec = nb_event_vec)
+    for(row_id in seq_len(nrow(df))) {
+        lambda <- df[row_id, 1]
+        nb_event <- df[row_id, 2]
+
+        # Génère les temps selon le lambda courant
+        proc_pois_seg <- generate_proc_pois_h(lambda = lambda, 
+            nb_event = nb_event)
+        
+        # Détecte le dernier temps du processus précédent
+        last_time <- ifelse(!is.null(event_times[length(event_times)]), 
+            event_times[length(event_times)], 0)
+        # Allonge le vecteur des temps en ajoutant au vecteur les temps générer
+        event_times <- c(event_times, proc_pois_seg + last_time)
+    }
+    return(event_times)
+}
+@
+<<'simulate'>>=
+lambdas <- c(1,3,10,3)
+nb_event_vec <- rep(20, length(lambdas))
+
+proc_pois <- generate_proc_pois_cpm(lambdas = lambdas,
+    nb_event_vec = nb_event_vec)
+max_time <- max(proc_pois)
+proc_pois <- proc_pois/max_time
 @
 
-% \begin{wrapfigure}{r}{0.35\textwidth}
-%     <<'plot', eval = TRUE, fig = TRUE>>=
-%     plot(Titanic)
-%     @
-%     \caption{Titanic plot}
-% \end{wrapfigure}
+La figure~\ref{fig:donnees-simu} présente les données simulées selon les 
+paramètres suivants :
+$$ \lambda = (\Sexpr{lambdas}), \text{ } \Delta N = (\Sexpr{nb_event_vec})
+\text{ et } N(1) = \Sexpr{sum(nb_event_vec)} $$
+
+\subsection*{Application de la méthode à données simulées}
+
+\subsubsection*{En donnant le nombre de segments}
+
+En fixant $K_{max} = 4$ et avec \texttt{selection = FALSE}. La méthode 
+trouve donc les résultats suivant présentés dans la table~\ref{tab:resultat}.
+<<'application_methode'>>=
+result_simu <- CptPointProcess(ProcessData = 
+    data.frame(times = proc_pois[-length(proc_pois)]), selection = FALSE, 
+    Kmax = 4)
+@
+<<'application_methode_selection'>>=
+result_simu_selection <- CptPointProcess(ProcessData = 
+    data.frame(times = proc_pois[-length(proc_pois)]), selection = TRUE, 
+    Kmax = 10)
+@
+
+\begin{table}[!h]
+    \parbox{.45\linewidth}{
+        \small
+        \centering
+        <<'table_simu'>>=
+        knitr::kable(cbind(round(result_simu$SegK[-3], digits = 2),
+            result_simu$SegK[3]), 
+            booktabs = TRUE, format = "latex")
+        @ 
+        \caption{Résultats de la méthode en donnant le nombre de segment}
+        \label{tab:resultat}
+    }
+    \hfill
+    \parbox{.45\linewidth}{
+        \centering
+        \small
+        <<'table_simu_selection'>>=
+        knitr::kable(cbind(round(result_simu_selection$SegK[-3],digits = 2),
+            result_simu_selection$SegK[3]), 
+            booktabs = TRUE, format = "latex")
+        @
+        \caption{Résultats de la méthode en \emph{cross-validation}}
+        \label{tab:resultat-cv}
+    }
+\end{table}
+
+\begin{wrapfigure}{R}{0.27\textwidth}
+    \centering
+    <<'plot', out.width="0.27\\textwidth", out.height="0.2\\textheight">>=
+        plot(proc_pois, seq_len(length(proc_pois)),
+            xlab = "Temps",
+            ylab = TeX("$N(t)$"), cex.lab = 1.75)
+        lines(proc_pois, seq_len(length(proc_pois)))
+    @
+    \vspace{-10pt}
+    \caption{Processus de Poisson inhomogène simulé}
+    \label{fig:donnees-simu}
+\end{wrapfigure}
+
+Soit pour $\lambda = (\Sexpr{round(result_simu$SegK$lambda/max_time, digits = 2)})$
+en \textbf{re-divisant par le temps maximal utilisé pour normaliser}.
+Et on peut donc constater que la méthode parvient à retrouver les valeurs des 
+différents paramètres. 
+
+\subsubsection*{En sélectionnant $\hat{K}$ avec la \emph{cross-validation}}
+En fixant seulement \texttt{selection = TRUE}. La méthode trouve donc les résultats suivant présentés dans la 
+table~\ref{tab:resultat-cv}.
+
+Soit pour $\lambda = (\Sexpr{round(result_simu_selection$SegK$lambda/max_time, digits = 2)})$.
+
+\textbf{Remarque :} pour $K = \Sexpr{length(lambdas)}$ et $N(1) = 
+\Sexpr{sum(nb_event_vec)}$, l'estimation de $\hat{K}$ est un peu hors des clous,
+mais nous avons testé en augmentant le nombre d'évènements. On peut imaginer que
+le \emph{thinning} peut augmenter la variabilité, avec l'effet attendu en 
+diminuant le nombre données.\\
+
+On peut donc voir que si la méthode sélectionne correctement le nombre de 
+segment l'estimation de paramètres obtenue est alors bonne, même pour un faible
+nombre de données.
+
+% \subsection*{Analyse de la sensibilité de la méthode à la quantité de 
+% données par simulations}
+
+\subsection*{Analyse de données de \cite{soubeyrandDonneesTheseExperience2024}}
+<<'import-donnees', echo = FALSE>>=
+soub_data <- read.csv("data/ree_data.csv")
+soub_time <- soub_data$time
+
+max_soub_time <- max(soub_time)
+
+soub_time <- soub_time/max_soub_time
+@
+
+\begin{wrapfigure}[12]{l}{0.27\textwidth}
+    \centering
+    <<'plot-soub', out.width="0.27\\textwidth", out.height="0.2\\textheight">>=
+        plot(soub_time, seq_len(length(soub_time)),
+            xlab = "Temps",
+            ylab = "Nombre de choix", cex.lab = 1.75)
+        lines(soub_time, seq_len(length(soub_time)))
+    @
+    \vspace{-15pt}
+    \caption{Affichage des données de l'expérience}
+    \label{fig:donnees-soub}
+\end{wrapfigure}
+
+Ces données sont extraite du travail de thèse toujours en cours de Lola 
+Soubeyrand. Il s'agit de l'enregistrement d'une expérience de type bandit 
+consistant à choisir un bras selon les récompenses passées obtenues.
+
+Nous allons seulement considérer les temps entre les choix pour réaliser notre 
+analyse. Ces données sont présentées dans la figure~\ref{fig:donnees-soub}.
+
+Aux vues de l'expérience, on peut s'attendre à une phase exploratoire des 
+différents bras du bandit (phase d'\emph{exploration}) puis une fois le bras 
+dont la stratégie convient au sujet trouvé à une concentration sur celui-ci (
+phase d'\emph{exploitation}). Á noter qu'avec les évènements rares et extrême
+des perturbations des convictions du sujet peuvent amener à des modifications du
+comportement. Ces analyses \emph{a priori} nous invite à penser que l'on peut 
+être dans le cas d'un processus de Poisson avec ruptures.
+
+<<'application_soub'>>=
+result_soub <- CptPointProcess(ProcessData = 
+    data.frame(times = soub_time[-length(soub_time)]), selection = TRUE)
+@
+
+\begin{table}[!h]
+    \centering
+    <<'table_soub_selection'>>=
+    knitr::kable(cbind(round(result_soub$SegK[-3],digits = 2),
+        result_soub$SegK[3]), 
+        booktabs = TRUE, format = "latex")
+    @
+    \caption{Résultats pour les données de \cite{soubeyrandDonneesTheseExperience2024}}
+    \label{tab:resultat-soub-cv}
+\end{table}
+
+Et ainsi on trouve $\lambda = (\Sexpr{round((result_soub$SegK$lambda)/max_soub_time, digits = 2)})$
+
+En interpétant ces paramètres on peut voir deux premiers segments qui semblent
+correspondre à la phase exploratoire initiale, puis une intensité de $9$ qui 
+correspond à la première phase d'exploitation. Et par la suite une cassure dûe
+à un évènement extrême négatif avant une reprise d'exploitation mixée à de 
+l'exploration.
+
+La détection de rupture pourra donc permettre d'analyser davantage les données 
+d'autres sujets afin de voir si ce genre d'analyse peut fournir de plus amples
+information sur la prise de décision en situation d'incertitude.
